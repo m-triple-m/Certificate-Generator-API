@@ -158,6 +158,7 @@ module.exports = class PDFGenerator {
       // console.log(textToDraw.split("\n").length);
 
       // console.log(this.cursorPos);
+      let textWidth = line.font.widthOfTextAtSize(textToDraw, this.FONT_SIZE);
       this.page.drawText(textToDraw.trim(), {
         x: line.setX ? line.setX : this.cursorPos.x,
         y: this.pageDim.height - this.cursorPos.y,
@@ -166,7 +167,8 @@ module.exports = class PDFGenerator {
         font: line.font,
         color,
       });
-      this.cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
+      // this.cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
+      this.cursorPos.x += textWidth;
       if (line.text.split("\n").length > 1 || line.setX) {
         this.cursorPos.x = this.startX;
       }

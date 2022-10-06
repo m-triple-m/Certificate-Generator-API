@@ -9,7 +9,7 @@ const cors = require('cors');
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', 'https://digi-generate.onrender.com'],
 }))
 
 app.use(express.json());
@@ -26,5 +26,5 @@ app.get('/', (req, res) => {
     });
 
 app.listen(port, () => {
-    console.log(`listening at http://localhost:${port}`);
+    console.log(`listening at ${port}`);
 });

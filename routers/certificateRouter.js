@@ -33,7 +33,7 @@ router.post("/generate", async (req, res) => {
   // console.log(req.body);
   const {sheetData, template_id} = req.body;
   const template = await templateModel.findById(template_id);
-  console.log(template_id);
+  console.log(sheetData);
   const studentData = sheetData.slice(1);
   const zip = new JSZip();
   try {

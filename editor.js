@@ -147,7 +147,7 @@ const getTabSpaces = (text, totalChars) => {
 const printLines = (page, textArray, color = rgb(0, 0, 0)) => {
   // console.log(text.split('\n'));
   // text.split("\n").forEach((line) => {
-  //   cursorPos.y+=LINEHEIGHT;
+  //   cursorPos.y += LINEHEIGHT;
   // });
 
   let currentLine = '';
@@ -157,6 +157,7 @@ const printLines = (page, textArray, color = rgb(0, 0, 0)) => {
     console.log(textToDraw.split("\n").length);
     
     console.log(cursorPos);
+    let textWidth = line.font.widthOfTextAtSize(textToDraw, FONT_SIZE);
     page.drawText(textToDraw, {
       x: (line.setX ? line.setX : cursorPos.x),
       y: pageDim.height - cursorPos.y,
@@ -165,7 +166,8 @@ const printLines = (page, textArray, color = rgb(0, 0, 0)) => {
       font: line.font,
       color,
     });
-    cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
+    // cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
+    cursorPos.x += textWidth;
     if(line.text.split('\n').length>1 || line.setX){
       cursorPos.x = startX;
     }
