@@ -12,7 +12,7 @@ const technology = "MERN Stack Development";
 const duration = `May'22 - Jul'22`;
 const cursorPos = { x: startX, y: startY };
 
-const MAXWORDS = 90;
+const MAXWORDS = 115;
 let charPerLine = 0;
 let pageDim = {};
 
@@ -40,73 +40,79 @@ const modify = async () => {
       type: "bold",
     },
     {
-      text: ` has completed his training.\n`,
+      text: ` has completed his training. Details are as follows:\n`,
       font: textFont,
       type: "normal",
     },
-    {
-      text: `Details are as follows:\n`,
-      font: textFont,
-      type: "normal",
-    },
+    // {
+    //   text: `Details are as follows:\n`,
+    //   font: textFont,
+    //   type: "normal",
+    // },
     {
       text: `\nProject`,
       font: textFont,
       type: "normal",
+      setX: startX,
     },
     {
       text: `: ${project}`,
       font: boldFont,
       type: "bold",
-      setX: pageDim.width/3,
+      setX: pageDim.width / 3,
     },
     {
       text: `\nTechnology`,
       font: textFont,
       type: "normal",
+      setX: startX,
     },
     {
       text: `: ${technology}`,
       font: boldFont,
       type: "bold",
-      setX: pageDim.width/3,
+      setX: pageDim.width / 3,
     },
     {
       text: `\nDuration`,
       font: textFont,
       type: "normal",
+      setX: startX,
     },
     {
       text: `: ${duration}`,
       font: boldFont,
       type: "bold",
-      setX: pageDim.width/3,
+      setX: pageDim.width / 3,
     },
     {
       text: `\n\nRegards,`,
       font: textFont,
-      type: "normal"
+      type: "normal",
+      setX: startX,
     },
     {
       text: `\n\n\n\nCoordinator,`,
       font: textFont,
-      type: "normal"
+      type: "normal",
+      setX: startX,
     },
     {
       text: `\nDigipodium,`,
       font: textFont,
       type: "normal",
-      setLineHeight: 15
+      setX: startX,
+      setLineHeight: 15,
     },
   ];
 
   // let bottomText+='\nFor any further details please contact the undersigned.'
 
   printLines(page, paragraphText1);
+  console.log(`Total Height: ${totalHeight}`);
+  drawImage(pdfDoc, page, './static/templates/sign.jpg', startX-20, pageDim.height - cursorPos.y + (LINEHEIGHT*2), 0.3)
 
-  let detailText = [
-    
-  ];
+  let detailText = [];
   // printLines(
   //   page,
   //   detailText,
@@ -115,7 +121,7 @@ const modify = async () => {
   // );
   // printLines(page, detailText, width/3, height - (totalHeight + 230), boldFont);
 
-  await saveFile(pdfDoc, "nice.pdf");
+  await saveFile(pdfDoc, "nice2.pdf");
 };
 
 const initFont = async (pdfDoc, file) => {
@@ -150,31 +156,54 @@ const printLines = (page, textArray, color = rgb(0, 0, 0)) => {
   //   cursorPos.y += LINEHEIGHT;
   // });
 
-  let currentLine = '';
+  let currentLine = "";
   textArray.forEach((line) => {
     let textToDraw = addNewLines(line.text);
-    
-    console.log(textToDraw.split("\n").length);
-    
-    console.log(cursorPos);
-    let textWidth = line.font.widthOfTextAtSize(textToDraw, FONT_SIZE);
-    page.drawText(textToDraw, {
-      x: (line.setX ? line.setX : cursorPos.x),
-      y: pageDim.height - cursorPos.y,
-      size: FONT_SIZE,
-      lineHeight: (line.setLineHeight ? line.setLineHeight : LINEHEIGHT),
-      font: line.font,
-      color,
-    });
-    // cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
-    cursorPos.x += textWidth;
-    if(line.text.split('\n').length>1 || line.setX){
-      cursorPos.x = startX;
+    // console.log(`charPerLine : ${charPerLine}`);
+    console.log(textToDraw);
+    console.log("\n");
+    let text = "";
+    // console.log(cursorPos);
+    for (let i = 0; i < textToDraw.length; i++) {
+      text = textToDraw[i];
+      let textWidth = line.font.widthOfTextAtSize(text, FONT_SIZE);
+      if (i > 0 && !line.setX) {
+        cursorPos.x = startX;
+        charPerLine = 0;
+      } else if (i == 0 && line.setX) {
+        cursorPos.x = line.setX;
+        charPerLine = 0;
+      }
+      page.drawText(text, {
+        x: line.setX ? line.setX : cursorPos.x,
+        y: pageDim.height - cursorPos.y,
+        size: FONT_SIZE,
+        lineHeight: line.setLineHeight ? line.setLineHeight : LINEHEIGHT,
+        font: line.font,
+        color,
+      });
+      // cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
+      cursorPos.x += textWidth;
+      
+      console.log(text.split("\n").length);
+      // cursorPos.y += (textToDraw.split("\n").length - 1) * LINEHEIGHT;
+      cursorPos.y += (text.split("\n").length -1 + i) * LINEHEIGHT;
     }
-    cursorPos.y += (textToDraw.split("\n").length - 1) * LINEHEIGHT;
   });
   // console.log(currentLine.split("\n").length);
 };
+
+const drawImage = async ( pdfDoc, page, path, x, y, scale) => {
+  const img = fs.readFileSync(path);
+  const jpgImage = await pdfDoc.embedJpg(img);
+  const jpgDims = jpgImage.scale(1);
+  page.drawImage(jpgImage, {
+    x: x,
+    y: y,
+    width: jpgDims.width * scale,
+    height: jpgDims.height *scale ,
+  })
+}
 
 const addNewLines = (text) => {
   // const text = document.getElementById("text").value;
@@ -183,24 +212,37 @@ const addNewLines = (text) => {
   const lines = [];
   let line = "";
   words.forEach((word, i) => {
+    
+    // console.log(`charPerLine : ${charPerLine}`);
+    // console.log(`totalLength : ${line.length + word.length + charPerLine}`);
+
     if (line.length + word.length + charPerLine <= MAXWORDS) {
       // console.log(line.length + word.length + charPerLine);
       line += word + " ";
-      if (i > 1) charPerLine += word.length + 1;
+      // if (i > 1)
+      charPerLine += word.length + 1;
     } else {
-      console.log(word);
+      // console.log(word);
       // console.log(line.length + word.length + charPerLine);
-      lines.push(line);
-      line = word + " ";
+      // if(lines.length >=1)
+      //   lines.push('\n'+line);
+      // else
+      console.log('limit reached');
+        lines.push(line);
+        line = word + " ";
       charPerLine = word.length + 1;
       totalHeight += LINEHEIGHT;
     }
   });
-  lines.push(line);
-  charPerLine = 0;
+  if(lines.length >=1)
+    lines.push('\n'+line);
+  else
+    lines.push(line);
+  // charPerLine = 0;
   // document.getElementById("text").value = lines.join("\n");
   // console.log(lines.join("\n"));
-  return lines.join("\n");
+  // return lines.join("\n");
+  return lines;
 };
 
 const saveByteArray = (reportName, byte) => {

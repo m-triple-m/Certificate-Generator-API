@@ -14,13 +14,13 @@ module.exports = class PDFGenerator {
     this.duration = `May'22 - Jul'22`;
     this.cursorPos = { x: this.startX, y: this.startY };
 
-    this.MAXWORDS = 90;
+    this.MAXWORDS = 100;
     this.charPerLine = 0;
     this.pageDim = {};
     this.template = template;
   }
 
-  modify = async (certiData, output = 'nice.pdf' ) => {
+  modify = async (certiData, output = "nice.pdf") => {
     // const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     await this.initPage(`./static/templates/${this.template}`);
@@ -50,11 +50,13 @@ module.exports = class PDFGenerator {
         text: `Details are as follows:\n`,
         font: this.textFont,
         type: "normal",
+        setX: this.startX,
       },
       {
         text: `\nProject`,
         font: this.textFont,
         type: "normal",
+        setX: this.startX,
       },
       {
         text: `: ${certiData.project}`,
@@ -66,6 +68,7 @@ module.exports = class PDFGenerator {
         text: `\nTechnology`,
         font: this.textFont,
         type: "normal",
+        setX: this.startX,
       },
       {
         text: `: ${certiData.technology}`,
@@ -77,6 +80,7 @@ module.exports = class PDFGenerator {
         text: `\nDuration`,
         font: this.textFont,
         type: "normal",
+        setX: this.startX,
       },
       {
         text: `: ${certiData.duration}`,
@@ -88,23 +92,27 @@ module.exports = class PDFGenerator {
         text: `\n\nRegards,`,
         font: this.textFont,
         type: "normal",
+        setX: this.startX,
       },
       {
         text: `\n\n\n\nCoordinator,`,
         font: this.textFont,
         type: "normal",
+        setX: this.startX,
       },
       {
         text: `\nDigipodium`,
         font: this.textFont,
         type: "normal",
         setLineHeight: 15,
+        setX: this.startX,
       },
     ];
 
     // let bottomText+='\nFor any further details please contact the undersigned.'
 
     this.printLines(paragraphText1);
+    this.drawImage(this.startX-20, this.pageDim.height - this.cursorPos.y + (this.LINEHEIGHT*2) - 10, 0.3)
 
     let detailText = [];
     // printLines(
@@ -151,57 +159,89 @@ module.exports = class PDFGenerator {
     //   cursorPos.y+=LINEHEIGHT;
     // });
 
-    let currentLine = "";
     textArray.forEach((line) => {
       let textToDraw = this.addNewLines(line.text);
+      // console.log(`charPerLine : ${charPerLine}`);
+      console.log(textToDraw);
+      console.log("\n");
+      let text = "";
+      // console.log(cursorPos);
+      for (let i = 0; i < textToDraw.length; i++) {
+        text = textToDraw[i];
+        let textWidth = line.font.widthOfTextAtSize(text, this.FONT_SIZE);
+        if (i > 0 && !line.setX) {
+          this.cursorPos.x = this.startX;
+          this.charPerLine = 0;
+        } else if (i == 0 && line.setX) {
+          this.cursorPos.x = line.setX;
+          this.charPerLine = 0;
+        }
+        this.page.drawText(text, {
+          x: line.setX ? line.setX : this.cursorPos.x,
+          y: this.pageDim.height - this.cursorPos.y,
+          size: this.FONT_SIZE,
+          lineHeight: line.setLineHeight ? line.setLineHeight : this.LINEHEIGHT,
+          font: line.font,
+          color,
+        });
+        // cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
+        this.cursorPos.x += textWidth;
 
-      // console.log(textToDraw.split("\n").length);
-
-      // console.log(this.cursorPos);
-      let textWidth = line.font.widthOfTextAtSize(textToDraw, this.FONT_SIZE);
-      this.page.drawText(textToDraw.trim(), {
-        x: line.setX ? line.setX : this.cursorPos.x,
-        y: this.pageDim.height - this.cursorPos.y,
-        size: this.FONT_SIZE,
-        lineHeight: line.setLineHeight ? line.setLineHeight : this.LINEHEIGHT,
-        font: line.font,
-        color,
-      });
-      // this.cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
-      this.cursorPos.x += textWidth;
-      if (line.text.split("\n").length > 1 || line.setX) {
-        this.cursorPos.x = this.startX;
+        console.log(text.split("\n").length);
+        // cursorPos.y += (textToDraw.split("\n").length - 1) * LINEHEIGHT;
+        this.cursorPos.y += (text.split("\n").length - 1 + i) * this.LINEHEIGHT;
       }
-      this.cursorPos.y += (textToDraw.split("\n").length - 1) * this.LINEHEIGHT;
     });
     // console.log(currentLine.split("\n").length);
   };
 
+  drawImage = async (x, y, scale, path='./static/templates/sign.jpg') => {
+    const img = fs.readFileSync(path);
+    const jpgImage = await this.pdfDoc.embedJpg(img);
+    const jpgDims = jpgImage.scale(1);
+    this.page.drawImage(jpgImage, {
+      x: x,
+      y: y,
+      width: jpgDims.width * scale,
+      height: jpgDims.height *scale ,
+    })
+  }
+
   addNewLines = (text) => {
     // const text = document.getElementById("text").value;
     // console.log(text);
+
     const words = text.split(" ");
     const lines = [];
     let line = "";
     words.forEach((word, i) => {
+      // console.log(`charPerLine : ${charPerLine}`);
+      // console.log(`totalLength : ${line.length + word.length + charPerLine}`);
+
       if (line.length + word.length + this.charPerLine <= this.MAXWORDS) {
         // console.log(line.length + word.length + charPerLine);
         line += word + " ";
-        if (i > 1) this.charPerLine += word.length + 1;
+        // if (i > 1)
+        this.charPerLine += word.length + 1;
       } else {
         // console.log(word);
         // console.log(line.length + word.length + charPerLine);
+        // if(lines.length >=1)
+        //   lines.push('\n'+line);
+        // else
+        console.log("limit reached");
         lines.push(line);
         line = word + " ";
         this.charPerLine = word.length + 1;
-        totalHeight += this.LINEHEIGHT;
+        this.totalHeight += this.LINEHEIGHT;
       }
     });
-    lines.push(line);
-    this.charPerLine = 0;
+    if (lines.length >= 1) lines.push("\n" + line);
+    else lines.push(line);
+
     // document.getElementById("text").value = lines.join("\n");
     // console.log(lines.join("\n"));
-    return lines.join("\n");
+    return lines;
   };
 
   saveFile = async (doc, filename) => {
@@ -210,10 +250,9 @@ module.exports = class PDFGenerator {
       if (err) throw err;
       console.log("It's saved!");
     });
-    return `./static/generatedPDF/${filename}`
+    return `./static/generatedPDF/${filename}`;
   };
-
-}
+};
 
 // let pdf = new PDFGenerator();
 // pdf.modify();
