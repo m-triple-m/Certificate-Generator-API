@@ -2,6 +2,8 @@ const { degrees, PDFDocument, rgb, StandardFonts } = require("pdf-lib");
 const fontkit = require("@pdf-lib/fontkit");
 const fs = require("fs");
 
+const formats = require('./formats');
+
 const [startX, startY] = [60, 230];
 const LINEHEIGHT = 30;
 let totalHeight = LINEHEIGHT * 2;
@@ -10,9 +12,11 @@ const studentName = "Mohammad Mubassir";
 const project = "Mini Project Name";
 const technology = "MERN Stack Development";
 const duration = `May'22 - Jul'22`;
-const cursorPos = { x: startX, y: startY };
+const trainer = `Mr. Mohammad Mubassir`;
+let cursorPos = { x: startX, y: startY };
+let cursorInc = { x: startX, y: startY };
 
-const MAXWORDS = 115;
+const MAXWORDS = 550;
 let charPerLine = 0;
 let pageDim = {};
 
@@ -20,96 +24,23 @@ const modify = async () => {
   // const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
   const [page, pdfDoc] = await initPage(
-    "./static/templates/letter_template2.pdf"
+    "./static/templates/Letter_Head_Blank.pdf"
   );
   pageDim = page.getSize();
   // console.log(startX, startY);
 
   const textFont = await initFont(pdfDoc, "Garamond.ttf");
   const boldFont = await initFont(pdfDoc, "Garamond-Bold.ttf");
-
-  let paragraphText1 = [
-    {
-      text: `This is to inform you that `,
-      font: textFont,
-      type: "normal",
-    },
-    {
-      text: studentName,
-      font: boldFont,
-      type: "bold",
-    },
-    {
-      text: ` has completed his training. Details are as follows:\n`,
-      font: textFont,
-      type: "normal",
-    },
-    // {
-    //   text: `Details are as follows:\n`,
-    //   font: textFont,
-    //   type: "normal",
-    // },
-    {
-      text: `\nProject`,
-      font: textFont,
-      type: "normal",
-      setX: startX,
-    },
-    {
-      text: `: ${project}`,
-      font: boldFont,
-      type: "bold",
-      setX: pageDim.width / 3,
-    },
-    {
-      text: `\nTechnology`,
-      font: textFont,
-      type: "normal",
-      setX: startX,
-    },
-    {
-      text: `: ${technology}`,
-      font: boldFont,
-      type: "bold",
-      setX: pageDim.width / 3,
-    },
-    {
-      text: `\nDuration`,
-      font: textFont,
-      type: "normal",
-      setX: startX,
-    },
-    {
-      text: `: ${duration}`,
-      font: boldFont,
-      type: "bold",
-      setX: pageDim.width / 3,
-    },
-    {
-      text: `\n\nRegards,`,
-      font: textFont,
-      type: "normal",
-      setX: startX,
-    },
-    {
-      text: `\n\n\n\nCoordinator,`,
-      font: textFont,
-      type: "normal",
-      setX: startX,
-    },
-    {
-      text: `\nDigipodium,`,
-      font: textFont,
-      type: "normal",
-      setX: startX,
-      setLineHeight: 15,
-    },
-  ];
+    // console.log(pageDim);
+  let paragraphText1 = formats.internshipLetter({studentName, project, technology, duration, textFont, boldFont, startX, pageDim});
+  // let paragraphText1 = formats.majorProjectLetter({studentName, project, technology, duration, trainer, textFont, boldFont, startX, pageDim});
 
   // let bottomText+='\nFor any further details please contact the undersigned.'
+  console.log(cursorPos);
 
   printLines(page, paragraphText1);
-  console.log(`Total Height: ${totalHeight}`);
+  // console.log(`Total Height: ${totalHeight}`);
+  // return;
   drawImage(pdfDoc, page, './static/templates/sign.jpg', startX-20, pageDim.height - cursorPos.y + (LINEHEIGHT*2), 0.3)
 
   let detailText = [];
@@ -158,22 +89,15 @@ const printLines = (page, textArray, color = rgb(0, 0, 0)) => {
 
   let currentLine = "";
   textArray.forEach((line) => {
-    let textToDraw = addNewLines(line.text);
-    // console.log(`charPerLine : ${charPerLine}`);
-    console.log(textToDraw);
-    console.log("\n");
+    let textToDraw = addNewLines(line.text, line.font, line.setX);
+    // console.log(cursorPos);
     let text = "";
     // console.log(cursorPos);
     for (let i = 0; i < textToDraw.length; i++) {
       text = textToDraw[i];
       let textWidth = line.font.widthOfTextAtSize(text, FONT_SIZE);
-      if (i > 0 && !line.setX) {
-        cursorPos.x = startX;
-        charPerLine = 0;
-      } else if (i == 0 && line.setX) {
-        cursorPos.x = line.setX;
-        charPerLine = 0;
-      }
+
+      console.log(cursorPos.x);
       page.drawText(text, {
         x: line.setX ? line.setX : cursorPos.x,
         y: pageDim.height - cursorPos.y,
@@ -183,11 +107,13 @@ const printLines = (page, textArray, color = rgb(0, 0, 0)) => {
         color,
       });
       // cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
-      cursorPos.x += textWidth;
+      cursorPos = {...cursorInc};
+      // cursorPos.y = cursorInc.y;
+      console.log(cursorPos);
       
-      console.log(text.split("\n").length);
+      // console.log(text.split("\n").length);
       // cursorPos.y += (textToDraw.split("\n").length - 1) * LINEHEIGHT;
-      cursorPos.y += (text.split("\n").length -1 + i) * LINEHEIGHT;
+      cursorPos.y += (text.split("\n").length -1) * LINEHEIGHT;
     }
   });
   // console.log(currentLine.split("\n").length);
@@ -205,7 +131,7 @@ const drawImage = async ( pdfDoc, page, path, x, y, scale) => {
   })
 }
 
-const addNewLines = (text) => {
+const addNewLines2 = (text) => {
   // const text = document.getElementById("text").value;
   // console.log(text);
   const words = text.split(" ");
@@ -244,6 +170,33 @@ const addNewLines = (text) => {
   // return lines.join("\n");
   return lines;
 };
+
+const addNewLines = (text, font, setX) => {
+  let words = text.split(" ");
+  // console.log(MAXWORDS);
+  line = '';
+  lines = []
+  
+  words.forEach((word, i) => {
+    console.log(word+" - "+cursorInc.x);
+    // console.log(word);
+    // let textWidth = font.widthOfTextAtSize(text, FONT_SIZE);
+    if(cursorInc.x+font.widthOfTextAtSize(word+' ', FONT_SIZE) > MAXWORDS){
+      // console.log('cursor to next '+cursorInc.x+' , '+word.length);
+      cursorInc.x = setX? setX : startX+font.widthOfTextAtSize(word+' ', FONT_SIZE);
+      cursorInc.y += LINEHEIGHT;
+      // charPerLine = 0;
+      lines.push(line+word+' ')
+      line=''
+
+    }else{
+      // charPerLine+=word.length+1
+      cursorInc.x +=font.widthOfTextAtSize(word+' ', FONT_SIZE);
+      line+=word+' '
+    }
+  })
+  return lines;
+}
 
 const saveByteArray = (reportName, byte) => {
   var blob = new Blob([byte], { type: "application/pdf" });
