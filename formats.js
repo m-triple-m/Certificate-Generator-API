@@ -1,4 +1,94 @@
 module.exports = {
+  miniProjectLetter: (
+    studentName,
+    project,
+    technology,
+    duration,
+    textFont,
+    boldFont,
+    startX,
+    pageDim,
+    gender
+  ) => {
+    return [
+      {
+        text: `This is to inform you that`,
+        font: textFont,
+        type: "normal",
+      },
+      {
+        text: studentName,
+        font: boldFont,
+        type: "bold",
+      },
+      {
+        text: `has completed ${gender=='male'?'his':'her'} training. Details are as follow:\n`,
+        font: textFont,
+        type: "normal",
+      },
+      {
+        text: `\nProject`,
+        font: textFont,
+        type: "normal",
+        setX: startX,
+      },
+      {
+        text: `: ${project}`,
+        font: boldFont,
+        type: "bold",
+        setX: pageDim.width / 3,
+      },
+      {
+        text: `\nTechnology`,
+        font: textFont,
+        type: "normal",
+        setX: startX,
+      },
+      {
+        text: `: ${technology}`,
+        font: boldFont,
+        type: "bold",
+        setX: pageDim.width / 3,
+      },
+      {
+        text: `\nDuration`,
+        font: textFont,
+        type: "normal",
+        setX: startX,
+      },
+      {
+        text: `: ${duration}`,
+        font: boldFont,
+        type: "bold",
+        setX: pageDim.width / 3,
+      },
+      {
+        text: `\n\nFor any further details please contact the undersigned.`,
+        font: textFont,
+        type: "normal",
+        setX: startX,
+      },
+      {
+        text: `\n\nRegards,`,
+        font: textFont,
+        type: "normal",
+        setX: startX,
+      },
+      {
+        text: `\n\n\n\nCoordinator,`,
+        font: textFont,
+        type: "normal",
+        setX: startX,
+      },
+      {
+        text: `\nDigipodium,`,
+        font: textFont,
+        type: "normal",
+        setX: startX,
+        setLineHeight: 15,
+      },
+    ];
+  },
   internshipLetter: ({
     studentName,
     project,
@@ -21,7 +111,7 @@ module.exports = {
         type: "bold",
       },
       {
-        text: `has completed his training. The project using MERN Stack Development was done under the guidance and supervision of Mr. Mohammad Mubassir from Feb’22 – Apr’22.\n`,
+        text: `has completed his training. The project using MERN Stack Development was done under the guidance and supervision of Mr. Mohammad Mubassir from Feb'22 - Apr'22.\n`,
         font: textFont,
         type: "normal",
       },
