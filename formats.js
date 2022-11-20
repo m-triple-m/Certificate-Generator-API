@@ -22,7 +22,7 @@ module.exports = {
         type: "bold",
       },
       {
-        text: `has completed ${gender=='male'?'his':'her'} training. Details are as follow:\n`,
+        text: `has completed summer internship from Digipodium. Details are as follow:\n`,
         font: textFont,
         type: "normal",
       },
@@ -75,7 +75,7 @@ module.exports = {
         setX: startX,
       },
       {
-        text: `\n\n\n\nCoordinator,`,
+        text: `\n\n\n\nDirector,`,
         font: textFont,
         type: "normal",
         setX: startX,

@@ -8,7 +8,7 @@ const [startX, startY] = [60, 230];
 const LINEHEIGHT = 25;
 let totalHeight = LINEHEIGHT * 2;
 const FONT_SIZE = 15;
-const studentName = "Mohammad Mubassir";
+const studentName = "Mohammad Akram Khan";
 const project = "Mini Project Name";
 const technology = "MERN Stack Development";
 const duration = `May'22 - Jul'22`;
@@ -30,10 +30,10 @@ const modify = async () => {
   pageDim = page.getSize();
   // console.log(startX, startY);
 
-  const textFont = await initFont(pdfDoc, "Garamond.ttf");
+  const textFont = await initFont(pdfDoc, "Garamond-Regular.ttf");
   const boldFont = await initFont(pdfDoc, "Garamond-Bold.ttf");
     // console.log(pageDim);
-  let paragraphText1 = formats.miniProjectLetter({studentName, project, technology, duration, textFont, boldFont, startX, pageDim, gender});
+  let paragraphText1 = formats.miniProjectLetter(studentName, project, technology, duration, textFont, boldFont, startX, pageDim, gender);
   // let paragraphText1 = formats.internshipLetter({studentName, project, technology, duration, textFont, boldFont, startX, pageDim});
   // let paragraphText1 = formats.majorProjectLetter({studentName, project, technology, duration, trainer, textFont, boldFont, startX, pageDim});
 

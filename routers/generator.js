@@ -1,7 +1,7 @@
 const { degrees, PDFDocument, rgb, StandardFonts } = require("pdf-lib");
 const fontkit = require("@pdf-lib/fontkit");
 const fs = require("fs");
-const formats = require('../formats');
+const formats = require("../formats");
 
 module.exports = class PDFGenerator {
   constructor(template) {
@@ -14,19 +14,19 @@ module.exports = class PDFGenerator {
     this.technology = "MERN Stack Development";
     this.duration = `May'22 - Jul'22`;
     this.cursorPos = { x: this.startX, y: this.startY };
+    this.cursorInc = { x: this.startX, y: this.startY };
 
-    this.MAXWORDS = 520;
+    this.MAXWORDS = 500;
     this.charPerLine = 0;
     this.pageDim = {};
     this.template = template;
   }
 
   modify = async (certiData, output = "nice.pdf") => {
-
     await this.initPage(`./static/templates/${this.template}`);
     this.pageDim = this.page.getSize();
 
-    this.textFont = await this.initFont("Garamond.ttf");
+    this.textFont = await this.initFont("Garamond-Regular.ttf");
     this.boldFont = await this.initFont("Garamond-Bold.ttf");
 
     // let paragraphText1 = [
@@ -107,14 +107,27 @@ module.exports = class PDFGenerator {
     //     setX: this.startX,
     //   },
     // ];
-    let paragraphText1 = formats.miniProjectLetter(certiData.studentName, certiData.project, certiData.technology, certiData.duration, this.textFont, this.boldFont, this.startX, this.pageDim, 'male');
-
+    let paragraphText1 = formats.miniProjectLetter(
+      certiData.studentName,
+      certiData.project,
+      certiData.technology,
+      certiData.duration,
+      this.textFont,
+      this.boldFont,
+      this.startX,
+      this.pageDim,
+      "male"
+    );
 
     this.printLines(paragraphText1);
-    this.drawImage(this.startX-30, this.pageDim.height - this.cursorPos.y + (this.LINEHEIGHT*1), 0.3)
+    this.drawImage(
+      this.startX - 30,
+      this.pageDim.height - 20 - this.cursorPos.y + this.LINEHEIGHT * 2,
+      0.3
+    );
 
     let detailText = [];
-    
+
     return await this.pdfDoc.save();
   };
 
@@ -141,18 +154,24 @@ module.exports = class PDFGenerator {
   };
 
   printLines = (textArray, color = rgb(0, 0, 0)) => {
+    let currentLine = "";
     textArray.forEach((line) => {
       let textToDraw = this.addNewLines(line.text, line.font, line.setX);
+      // console.log(cursorPos);
       let text = "";
+      console.log(textToDraw);
+      // console.log(cursorPos);
       for (let i = 0; i < textToDraw.length; i++) {
         text = textToDraw[i];
-        
-        if(i==0 && line.setX){
+
+        if (i == 0 && line.setX) {
           this.cursorPos.x = line.setX;
         }
-        if(i>0){
+        if (i > 0) {
           this.cursorPos.x = line.setX ? line.setX : this.startX;
+          // console.log(cursorPos)
         }
+        // console.log(cursorPos.x);
         this.page.drawText(text, {
           x: this.cursorPos.x,
           y: this.pageDim.height - this.cursorPos.y,
@@ -162,12 +181,20 @@ module.exports = class PDFGenerator {
           color,
         });
         this.cursorPos.x += line.font.widthOfTextAtSize(text, this.FONT_SIZE);
-        this.cursorPos.y += (text.split("\n").length -1) * this.LINEHEIGHT;
+
+        // cursorPos.x += line.text.length * (line.type == "normal" ? 6 : 8);
+        // cursorPos.y = cursorInc.y;
+        // console.log(cursorPos);
+
+        // console.log(text.split("\n").length);
+        // cursorPos.y += (textToDraw.split("\n").length - 1) * LINEHEIGHT;
+        this.cursorPos.y += (text.split("\n").length - 1) * this.LINEHEIGHT;
       }
+      // cursorPos = {...cursorInc};
     });
   };
 
-  drawImage = async (x, y, scale, path='./static/templates/sign.jpg') => {
+  drawImage = async (x, y, scale, path = "./static/templates/sign.jpg") => {
     const img = fs.readFileSync(path);
     const jpgImage = await this.pdfDoc.embedJpg(img);
     const jpgDims = jpgImage.scale(1);
@@ -175,30 +202,41 @@ module.exports = class PDFGenerator {
       x: x,
       y: y,
       width: jpgDims.width * scale,
-      height: jpgDims.height *scale ,
-    })
-  }
+      height: jpgDims.height * scale,
+    });
+  };
 
   addNewLines = (text, font, setX) => {
     let words = text.split(" ");
-    let line = '';
+    let line = "";
     let lines = [];
-    // if(setX) cursorInc.x = 0;
-    
+    let singleLine = true;
+    if (setX) this.cursorInc.x = 0;
+
     words.forEach((word, i) => {
-      // if(cursorInc.x+font.widthOfTextAtSize(word+' ', FONT_SIZE) > MAXWORDS){
-      if(font.widthOfTextAtSize(word+' ', this.FONT_SIZE) > this.MAXWORDS){
-        // console.log('cursor to next '+cursorInc.x+' , '+word.length);
-        // cursorInc.x = setX? setX : startX+font.widthOfTextAtSize(word+' ', FONT_SIZE);
-        // cursorInc.y += LINEHEIGHT;
-        lines.push(line+word+'\n')
-        line='';
-        
-      }else{
-        // cursorInc.x +=font.widthOfTextAtSize(word+' ', FONT_SIZE);
-        line+=word+' '
+      // console.log(word+" - "+cursorInc.x);
+      // console.log(word);
+      // let textWidth = font.widthOfTextAtSize(text, FONT_SIZE);
+      if (
+        this.cursorInc.x + font.widthOfTextAtSize(word + " ", this.FONT_SIZE) >
+        this.MAXWORDS
+      ) {
+        console.log("cursor to next " + this.cursorInc.x + " , " + word.length);
+        this.cursorInc.x = setX
+          ? setX
+          : this.startX + font.widthOfTextAtSize(word + " ", this.FONT_SIZE);
+        this.cursorInc.y += this.LINEHEIGHT;
+        // charPerLine = 0;
+        console.log(line + word);
+        lines.push(line + word + "\n");
+        line = "";
+        singleLine = false;
+      } else {
+        // charPerLine+=word.length+1
+        this.cursorInc.x += font.widthOfTextAtSize(word + " ", this.FONT_SIZE);
+        line += word + " ";
       }
-    })
+    });
     lines.push(line);
     return lines;
   };

@@ -33,7 +33,7 @@ router.post("/generatebatch", async (req, res) => {
   // console.log(req.body);
   const { sheetData, template_id } = req.body;
   const template = await templateModel.findById(template_id);
-  console.log(sheetData);
+  // console.log(sheetData);
   const studentData = sheetData.slice(1);
   const zip = new JSZip();
   try {
@@ -47,6 +47,7 @@ router.post("/generatebatch", async (req, res) => {
         duration: student[4],
         project: student[6],
       });
+      console.log(student[2]);
       zip.file(
         `Minor_Project_Certificates/${student[2]
           .trim()
